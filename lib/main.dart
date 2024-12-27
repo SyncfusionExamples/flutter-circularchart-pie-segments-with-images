@@ -32,7 +32,6 @@ class PieChartState extends State<PieChart> {
   ui.Image? _image1;
   ui.Image? _image2;
   ui.Image? _image3;
-  ui.Image? _image4;
   Widget? _renderWidget;
 
   @override
@@ -42,66 +41,48 @@ class PieChartState extends State<PieChart> {
   }
 
   void _fetchImage() async {
-    _image1 = await _loadImage('assets/images/instagram.png', [
-      Colors.purple.withValues(alpha: 0.4),
-      Colors.white,
-    ]);
-    _image2 = await _loadImage('assets/images/facebook.png', [
-      Colors.indigo.withValues(alpha: 0.4),
-      Colors.white,
-    ]);
-    _image3 = await _loadImage('assets/images/twitter.png', [
-      Colors.blue.withValues(alpha: 0.4),
-      Colors.white,
-    ]);
-    _image4 = await _loadImage('assets/images/snapchat.png', [
-      Colors.yellow.withValues(alpha: 0.4),
-      Colors.white,
-    ]);
+    final Completer<ImageInfo> completer = Completer<ImageInfo>();
+    const ImageProvider imageProvider = AssetImage('assets/images/apple.png');
+    imageProvider
+        .resolve(ImageConfiguration.empty)
+        .addListener(ImageStreamListener((ImageInfo info, bool _) async {
+      completer.complete(info);
+      final ImageInfo imageInfo = await completer.future;
 
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<ui.Image> _loadImage(
-      String assetPath, List<Color> gradientColors) async {
-    final Completer<ui.Image> completer = Completer<ui.Image>();
-    final ImageStream stream =
-        AssetImage(assetPath).resolve(ImageConfiguration.empty);
-    stream.addListener(ImageStreamListener((ImageInfo info, bool _) async {
-      final ui.PictureRecorder recorder = ui.PictureRecorder();
-      final Canvas canvas = Canvas(recorder);
-      final Paint paint = Paint()
-        ..shader = ui.Gradient.linear(
-          Offset(0, 0),
-          Offset(info.image.width.toDouble(), info.image.height.toDouble()),
-          gradientColors,
-        );
-      canvas.drawRect(
-        Rect.fromLTWH(
-          0,
-          0,
-          info.image.width.toDouble(),
-          info.image.height.toDouble(),
-        ),
-        paint,
-      );
-      canvas.drawImage(info.image, Offset.zero, Paint());
-      final ui.Image finalImage = await recorder
-          .endRecording()
-          .toImage(info.image.width, info.image.height);
-      completer.complete(finalImage);
+      _image1 = imageInfo.image;
     }));
-    return completer.future;
+
+    final Completer<ImageInfo> completer1 = Completer<ImageInfo>();
+    const ImageProvider imageProvider1 = AssetImage('assets/images/orange.png');
+    imageProvider1
+        .resolve(ImageConfiguration.empty)
+        .addListener(ImageStreamListener((ImageInfo info, bool _) async {
+      completer1.complete(info);
+      final ImageInfo imageInfo1 = await completer1.future;
+      _image2 = imageInfo1.image;
+    }));
+
+    final Completer<ImageInfo> completer2 = Completer<ImageInfo>();
+    const ImageProvider imageProvider2 = AssetImage('assets/images/pears.png');
+    imageProvider2
+        .resolve(ImageConfiguration.empty)
+        .addListener(ImageStreamListener((ImageInfo info, bool _) async {
+      completer2.complete(info);
+      final ImageInfo imageInfo2 = await completer2.future;
+
+      _image3 = imageInfo2.image;
+      if (mounted) {
+        setState(() {});
+      }
+    }));
   }
 
-  List<_ChartShaderData> _getChartData() {
+  List<_ChartShaderData> _buildChartData() {
     return <_ChartShaderData>[
       _ChartShaderData(
-        'Instagram',
-        42,
-        '42%',
+        'Apple',
+        45,
+        '45%',
         ui.ImageShader(
           _image1!,
           TileMode.repeated,
@@ -110,9 +91,9 @@ class PieChartState extends State<PieChart> {
         ),
       ),
       _ChartShaderData(
-        'Facebook',
-        20,
-        '20%',
+        'Orange',
+        30,
+        '30%',
         ui.ImageShader(
           _image2!,
           TileMode.repeated,
@@ -121,22 +102,11 @@ class PieChartState extends State<PieChart> {
         ),
       ),
       _ChartShaderData(
-        'Twitter',
-        15,
-        '15%',
+        'Pears',
+        25,
+        '25%',
         ui.ImageShader(
           _image3!,
-          TileMode.repeated,
-          TileMode.repeated,
-          Matrix4.identity().scaled(0.5).storage,
-        ),
-      ),
-      _ChartShaderData(
-        'Snapchat',
-        23,
-        '23%',
-        ui.ImageShader(
-          _image4!,
           TileMode.repeated,
           TileMode.repeated,
           Matrix4.identity().scaled(0.5).storage,
@@ -147,10 +117,10 @@ class PieChartState extends State<PieChart> {
 
   PieSeries<_ChartShaderData, String> _buildPieSeries() {
     return PieSeries<_ChartShaderData, String>(
-      dataSource: _getChartData(),
+      dataSource: _buildChartData(),
       xValueMapper: (_ChartShaderData data, int index) => data.x,
       yValueMapper: (_ChartShaderData data, int index) => data.y,
-      strokeColor: Colors.purple,
+      strokeColor: Colors.deepPurple.shade400,
       strokeWidth: 2,
       explode: true,
       explodeAll: true,
@@ -163,14 +133,14 @@ class PieChartState extends State<PieChart> {
           isVisible: true,
           labelPosition: ChartDataLabelPosition.outside,
           connectorLineSettings: ConnectorLineSettings(
-            color: Colors.purple,
+            color: Colors.deepPurple.shade400,
             width: 2,
             length: '15%',
             type: ConnectorType.line,
           ),
           textStyle: TextStyle(
             fontSize: 16,
-            color: Colors.purple,
+            color: Colors.deepPurple.shade400,
             fontWeight: FontWeight.bold,
           )),
     );
@@ -178,13 +148,10 @@ class PieChartState extends State<PieChart> {
 
   @override
   Widget build(BuildContext context) {
-    if (_image1 != null &&
-        _image2 != null &&
-        _image3 != null &&
-        _image4 != null) {
+    if (_image1 != null && _image2 != null && _image3 != null) {
       _renderWidget = SfCircularChart(
         title: ChartTitle(
-          text: 'Social Media App Usage in India',
+          text: 'Sales comparison of fruits in a shop',
           textStyle: TextStyle(
             fontWeight: FontWeight.bold,
           ),
@@ -210,8 +177,6 @@ class PieChartState extends State<PieChart> {
     _image1 = null;
     _image2 = null;
     _image3 = null;
-    _image4 = null;
-
     super.dispose();
   }
 }
